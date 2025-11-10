@@ -1,0 +1,11 @@
+name: "opioid-maps"
+title: "Physician Opioid Trends"
+output_dir: "docs"          # <-- change from _site to docs
+output: distill::distill_website
+navbar:
+  title: "Physician Opioid Trends"
+  right:
+    - text: "Home"
+      href: index.html
+    - text: "Maps"
+      href: aim1_maps.html
