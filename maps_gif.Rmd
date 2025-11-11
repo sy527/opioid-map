@@ -1,0 +1,223 @@
+---
+title: "2014 to 2019 Monthly Map"
+author: "SunJung Yoon"
+date: "`r Sys.Date()`"
+output: distill::distill_article
+description: |
+  The two maps show drug purchasing and payment amount received on a physician level.
+---
+
+```{r setup, include=FALSE}
+# install.packages("psych")
+# install.packages("kableExtra")
+library(tidyverse)
+library(psych)
+library(kableExtra)
+```
+
+```{r, echo = FALSE}
+
+# run the map.R program before using this program
+# source("programs/analysis/map.R")
+# from 13_arcos_openpayment.R
+load("I:/Research/sunyoon/research/cleandata/complete/map.RData")
+
+```
+
+
+```{r, echo = FALSE, include = FALSE}
+reclass_map <- read_csv("I:/Research/sunyoon/research/cleandata/npi/reclass.csv") %>%
+  select(Classification, Reclass) %>%
+  distinct() %>%
+  deframe()
+
+general_map <- read_csv("I:/Research/sunyoon/research/cleandata/npi/reclass.csv") %>%
+  select(Classification, General) %>%
+  distinct() %>%
+  deframe()
+
+general_map2 <- read_csv("I:/Research/sunyoon/research/cleandata/npi/reclass.csv") %>%
+  select(Classification, General2) %>%
+  distinct() %>%
+  deframe()
+
+library(sf)
+# Apply reclassification
+
+
+map <- map %>%
+  st_drop_geometry() %>%
+  select(-ends_with("BUPRENORPHINE"), -ends_with("METHADONE")) %>%
+  mutate(reclass = recode(Classification, !!!reclass_map),
+         general = recode(Classification, !!!general_map),
+         general2 = recode(Classification, !!!general_map2)) %>%
+  filter(reclass != "Drop")
+
+
+
+# keep just the matched NPIs
+map <- map %>%
+  st_drop_geometry() %>%
+  filter(matched == "ARCOS_OPEN") %>%
+   mutate(
+    totalMME = rowSums(across(starts_with("totalMME_")), na.rm = TRUE),
+    totalgm = rowSums(across(starts_with("totalgm_")), na.rm = TRUE), 
+    totalQ = rowSums(across(starts_with("totalQ_")), na.rm = TRUE)
+  )
+
+```
+
+
+
+
+```{r mme_map, echo=FALSE, message=FALSE, warning=FALSE}
+# get all the fipscode from tidycensus
+library(tidycensus)
+
+fips <- tidycensus::fips_codes
+fips <- fips %>%
+  mutate(fips = paste0(state_code, county_code)) %>%
+  select(fips)
+
+
+library(gganimate)
+library(usmap)
+library(ggplot2)
+
+ymMME <- map %>%
+  group_by(fips, ym) %>%
+  summarise(totalMME = sum(totalMME),
+            n_physician = n_distinct(npi),
+            .groups = "drop") %>%
+  mutate(totalMME = ifelse(is.na(totalMME), 0, totalMME),
+         MMEperphys = totalMME/n_physician) %>%
+  filter(fips != "")
+
+# # find the missing fipscodes
+missingfips <- fips %>%
+  anti_join(ymMME %>% select(fips) %>% distinct(), by = "fips")
+
+# # get all unique ym values
+all_ym <- ymMME %>%
+  distinct(ym)
+
+# cross join: all missing fips × all ym
+missing_expand <- missingfips %>%
+  crossing(all_ym) %>%
+  mutate(
+    totalMME = 0,
+    n_physician = 0,
+    MMEperphys = 0
+  )
+
+# append back into ymMME
+ymMME <- bind_rows(ymMME, missing_expand) %>%
+  group_by(fips, ym) %>%
+  summarise(totalMME = sum(totalMME),
+            n_physician = sum(n_physician),
+            MMEperphys = sum(MMEperphys),
+            .groups = "drop") %>%
+  mutate(totalMME = ifelse(is.na(totalMME), 0, totalMME),
+         MMEperphys = totalMME/n_physician) %>%
+  filter(fips != "")
+
+
+cap <- quantile(ymMME$MMEperphys, .98, na.rm = TRUE)
+
+
+anim <- plot_usmap(
+  color = "white",
+  linewidth = 0.1,
+  regions = "counties",
+  data = ymMME,
+  values = "MMEperphys"
+  ) +
+  scale_fill_gradientn(
+    colors = c("lightblue", "skyblue", "orange", "red", "darkred"),
+    limits = c(0, cap),
+    oob = scales::squish,
+    labels = scales::label_number(scale_cut = scales::cut_short_scale()),
+    name = "MME"
+  ) +
+  theme(legend.position = 'right') +
+  labs(title = 'MME Purchase Per Physician by Year-Month: {frame_time}') +
+  transition_time(ym) +
+  shadow_wake(wake_length = 0.1, alpha = TRUE, falloff = "linear")
+
+anim <- animate(anim, height = 800, width = 800, res = 150)
+anim
+
+anim_save("I:/Research/sunyoon/research/programs/analysis/APPAM/map/mme.gif", anim)
+```
+
+
+
+
+```{r pay_map, echo=FALSE, message=FALSE, warning=FALSE}
+ymPay <- map %>%
+  group_by(fips, ym) %>%
+  summarise(totalPay = sum(total.payment),
+            n_physician = n_distinct(npi),
+            .groups = "drop") %>%
+  mutate(totalPay = ifelse(is.na(totalPay), 0, totalPay),
+         PAYperphys = totalPay/n_physician) %>%
+  filter(fips != "")
+
+# # find the missing fipscodes
+missingfips <- fips %>%
+  anti_join(ymPay %>% select(fips) %>% distinct(), by = "fips")
+
+# # get all unique ym values
+all_ym <- ymPay %>%
+  distinct(ym)
+
+# # cross join: all missing fips × all ym
+missing_expand <- missingfips %>%
+  crossing(all_ym) %>%
+  mutate(
+    totalPay = 0,
+    n_physician = 0,
+    PAYperphys = 0
+  )
+
+# # append back into ymMME
+ymPay <- bind_rows(ymPay, missing_expand) %>%
+  group_by(fips, ym) %>%
+  summarise(totalPay = sum(totalPay),
+            n_physician = sum(n_physician),
+            PAYperphys = sum(PAYperphys),
+            .groups = "drop") %>%
+  mutate(totalPay = ifelse(is.na(totalPay), 0, totalPay),
+         PAYperphys = totalPay/n_physician) %>%
+  filter(fips != "")
+
+
+
+cap <- quantile(ymPay$PAYperphys, .95, na.rm = TRUE)
+
+
+animPay <- plot_usmap(
+  color = "white",
+  linewidth = 0.1,
+  regions = "counties",
+  data = ymPay,
+  values = "PAYperphys"
+  ) +
+  scale_fill_gradientn(
+    colors = c("lightblue", "skyblue", "orange", "red", "darkred"),
+    limits = c(0, cap),
+    oob = scales::squish,
+    labels = scales::label_number(scale_cut = scales::cut_short_scale()),
+    name = "Payment ($)"
+  ) +
+  theme(legend.position = 'right') +
+  labs(title = 'Payment Received Per Physician by Year-Month: {frame_time}') +
+  transition_time(ym)
+
+animPay <- animate(animPay, width = 800, height = 800, res = 150)
+animPay
+
+anim_save("I:/Research/sunyoon/research/programs/analysis/APPAM/map/pay.gif", animPay)
+
+```
+

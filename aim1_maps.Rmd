@@ -4,7 +4,7 @@ author: "SunJung Yoon"
 date: "`r Sys.Date()`"
 output: distill::distill_article
 description: |
-  The two maps show drug purchasing and payment amount received on a physician level.
+  The two maps show drug purchasing and payment amount received on a physician level from 2014 to 2019
 ---
 
 ```{r setup, include=FALSE}
@@ -68,161 +68,13 @@ map <- map %>%
 ```
 
 
+Hello everyone! My name is Sun and I am a 5th-year Health Services Research Ph.D. student at the University of Maryland, College Park. My current research interests lie in substance use disorder and mental health. I am currently exploring postdoctoral opportunities beginning in Fall 2026, so if you or your colleagues are looking for someone in this area, I would love to connect! Please feel free to reach out at <sy527@umd.edu>, I would love to chat! 
 
 ```{r, echo = FALSE}
-knitr::include_graphics("I:/Research/sunyoon/research/programs/analysis/APPAM/map/mmePurchasePhysician.gif")
+knitr::include_graphics("I:/Research/sunyoon/research/programs/analysis/APPAM/map/mme.gif")
 ```
-
-
 
 ```{r, echo = FALSE}
-knitr::include_graphics("I:/Research/sunyoon/research/programs/analysis/APPAM/map/perPaymentPhysician.gif")
-```
-
-
-```{r mme_map, echo=FALSE, message=FALSE, warning=FALSE}
-# get all the fipscode from tidycensus
-# library(tidycensus)
-# 
-# fips <- tidycensus::fips_codes
-# fips <- fips %>%
-#   mutate(fips = paste0(state_code, county_code)) %>%
-#   select(fips)
-# 
-# 
-# library(gganimate)
-# library(usmap)
-# library(ggplot2)
-# 
-# ymMME <- map %>%
-#   group_by(fips, ym) %>%
-#   summarise(totalMME = sum(totalMME),
-#             n_physician = n_distinct(npi),
-#             .groups = "drop") %>%
-#   mutate(totalMME = ifelse(is.na(totalMME), 0, totalMME),
-#          MMEperphys = totalMME/n_physician) %>%
-#   filter(fips != "")
-# 
-# # find the missing fipscodes
-# missingfips <- fips %>%
-#   anti_join(ymMME %>% select(fips) %>% distinct(), by = "fips")
-# 
-# # get all unique ym values
-# all_ym <- ymMME %>%
-#   distinct(ym)
-# 
-# # cross join: all missing fips × all ym
-# missing_expand <- missingfips %>%
-#   crossing(all_ym) %>%
-#   mutate(
-#     totalMME = 0,
-#     n_physician = 0,
-#     MMEperphys = 0
-#   )
-# 
-# # append back into ymMME
-# ymMME <- bind_rows(ymMME, missing_expand) %>%
-#   group_by(fips, ym) %>%
-#   summarise(totalMME = sum(totalMME),
-#             n_physician = sum(n_physician),
-#             MMEperphys = sum(MMEperphys),
-#             .groups = "drop") %>%
-#   mutate(totalMME = ifelse(is.na(totalMME), 0, totalMME),
-#          MMEperphys = totalMME/n_physician) %>%
-#   filter(fips != "")
-# 
-# 
-# cap <- quantile(ymMME$MMEperphys, .98, na.rm = TRUE)
-# 
-# 
-# plot_usmap(
-#   color = "white",
-#   linewidth = 0.1,
-#   regions = "counties",
-#   data = ymMME,
-#   values = "MMEperphys"
-#   ) +
-#   scale_fill_gradientn(
-#     colors = c("lightblue", "skyblue", "orange", "red", "darkred"),
-#     limits = c(0, cap),
-#     oob = scales::squish,
-#     labels = scales::label_number(scale_cut = scales::cut_short_scale()),
-#     name = "MME Per Physician"
-#   ) +
-#   theme(legend.position = 'right') +
-#   labs(title = 'MME Purchase Per Physician by Year-Month: {frame_time}') +
-#   transition_time(ym) + 
-#   shadow_wake(wake_length = 0.1, alpha = TRUE, falloff = "linear")
-
-# anim <- animate(anim, height = 800, width = 800, res = 150)
-# anim
-```
-
-
-
-
-```{r pay_map, echo=FALSE, message=FALSE, warning=FALSE}
-# ymPay <- map %>%
-#   group_by(fips, ym) %>%
-#   summarise(totalPay = sum(total.payment),
-#             n_physician = n_distinct(npi),
-#             .groups = "drop") %>%
-#   mutate(totalPay = ifelse(is.na(totalPay), 0, totalPay),
-#          PAYperphys = totalPay/n_physician) %>%
-#   filter(fips != "")
-# 
-# # find the missing fipscodes
-# missingfips <- fips %>%
-#   anti_join(ymPay %>% select(fips) %>% distinct(), by = "fips")
-# 
-# # get all unique ym values
-# all_ym <- ymPay %>%
-#   distinct(ym)
-# 
-# # cross join: all missing fips × all ym
-# missing_expand <- missingfips %>%
-#   crossing(all_ym) %>%
-#   mutate(
-#     totalPay = 0,
-#     n_physician = 0,
-#     PAYperphys = 0
-#   )
-# 
-# # append back into ymMME
-# ymPay <- bind_rows(ymPay, missing_expand) %>%
-#   group_by(fips, ym) %>%
-#   summarise(totalPay = sum(totalPay),
-#             n_physician = sum(n_physician),
-#             PAYperphys = sum(PAYperphys),
-#             .groups = "drop") %>%
-#   mutate(totalPay = ifelse(is.na(totalPay), 0, totalPay),
-#          PAYperphys = totalPay/n_physician) %>%
-#   filter(fips != "")
-# 
-# 
-# 
-# cap <- quantile(ymPay$PAYperphys, .95, na.rm = TRUE)
-# 
-# 
-# plot_usmap(
-#   color = "white",
-#   linewidth = 0.1,
-#   regions = "counties",
-#   data = ymPay,
-#   values = "PAYperphys"
-#   ) +
-#   scale_fill_gradientn(
-#     colors = c("lightblue", "skyblue", "orange", "red", "darkred"),
-#     limits = c(0, cap),
-#     oob = scales::squish,
-#     labels = scales::label_number(scale_cut = scales::cut_short_scale()),
-#     name = "Payment Received Per Physician"
-#   ) +
-#   theme(legend.position = 'right') +
-#   labs(title = 'Payment Received Per Physician by Year-Month: {frame_time}') +
-#   transition_time(ym)
-
-# animPay <- animate(animPay, width = 800, height = 800, res = 150)
-# animPay
+knitr::include_graphics("I:/Research/sunyoon/research/programs/analysis/APPAM/map/pay.gif")
 ```
 
