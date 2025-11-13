@@ -68,7 +68,7 @@ map <- map %>%
 ```
 
 
-Hello everyone! My name is Sun and I am a 5th-year Health Services Research Ph.D. student at the University of Maryland, College Park. My current research interests lie in substance use disorder and mental health. I am currently exploring postdoctoral opportunities beginning in Fall 2026, so if you or your colleagues are looking for someone in this area, I would love to connect! Please feel free to reach out at <sy527@umd.edu>, I would love to chat! 
+Hello everyone! My name is Sun and I am a 5th-year Health Services Research Ph.D. student at the University of Maryland, College Park. My current research interests lie in substance use disorder and mental health. If you have any comments about this work or just want to chat, please feel free to reach out at <sy527@umd.edu>. I am currently exploring postdoctoral opportunities beginning in Fall 2026, so if you or your colleagues are looking for someone in this area, I would love to connect!
 
 ```{r, echo = FALSE}
 knitr::include_graphics("I:/Research/sunyoon/research/programs/analysis/APPAM/map/mme.gif")
@@ -77,4 +77,5 @@ knitr::include_graphics("I:/Research/sunyoon/research/programs/analysis/APPAM/ma
 ```{r, echo = FALSE}
 knitr::include_graphics("I:/Research/sunyoon/research/programs/analysis/APPAM/map/pay.gif")
 ```
+
 
